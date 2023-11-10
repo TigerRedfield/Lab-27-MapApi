@@ -2,40 +2,66 @@ package com.example.lab_27_vasilev_mapapi_403;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
+
+import com.example.lab_27_vasilev_mapapi_403.databinding.ActivityMainBinding;
+
 public class MainActivity extends AppCompatActivity {
+
+    private ActivityMainBinding MainBinding;
+
+    private MapDatabaseHelper db;
 
     MapView mv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        mv = findViewById(R.id.mapView);
-        mv.ctx = this;
+        MainBinding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(MainBinding.getRoot());
+        db = new MapDatabaseHelper(this.getApplicationContext());
 
+        MainBinding.ButPlus.setOnClickListener(v -> {
+
+            if (MainBinding.mapView.current_level_index == MainBinding.mapView.levels.length - 1) return;
+            MainBinding.mapView.offset_x *= 2.0f;
+            MainBinding.mapView.offset_y *= 2.0f;
+            MainBinding.mapView.offset_x -= MainBinding.mapView.width / 2.0f;
+            MainBinding.mapView.offset_y -= MainBinding.mapView.height / 2.0f;
+            MainBinding.mapView.current_level_index++;
+            MainBinding.mapView.invalidate();
+            MainBinding.mapView.saveMapCurrent();
+        });
+
+        MainBinding.ButMinus.setOnClickListener(v -> {
+
+            if (MainBinding.mapView.current_level_index == 0) return;
+            MainBinding.mapView.offset_x += MainBinding.mapView.width / 2.0f;
+            MainBinding.mapView.offset_y += MainBinding.mapView.height / 2.0f;
+            MainBinding.mapView.offset_x /= 2.0f;
+            MainBinding.mapView.offset_y /= 2.0f;
+            MainBinding.mapView.current_level_index--;
+            MainBinding.mapView.invalidate();
+            MainBinding.mapView.saveMapCurrent();
+        });
     }
 
-        public void zoomOut(View v)
-        {
-            if(mv.current_level_index == 0) return;
-            mv.offset_x += mv.width / 2.0f;
-            mv.offset_y += mv.height / 2.0f;
-            mv.offset_x /= 2.0f;
-            mv.offset_y /= 2.0f;
-            mv.current_level_index--;
-            mv.invalidate();
-        }
 
-        public void zoomIn(View v)
-        {
-            if(mv.current_level_index == mv.levels.length - 1) return;
-            mv.offset_x *= 2.0f;
-            mv.offset_y *= 2.0f;
-            mv.offset_x -= mv.width / 2.0f;
-            mv.offset_y -= mv.height / 2.0f;
-            mv.current_level_index--;
-            mv.invalidate();
-        }
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        // Сохраняем данные в базу данных при приостановке активности
+        MainBinding.mapView.saveMapCurrent();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Восстанавливаем данные из базы данных при восстановлении активности
+        MainBinding.mapView.restoreMapCurrent();
+    }
     }

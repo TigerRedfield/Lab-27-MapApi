@@ -16,18 +16,25 @@ public class MapDatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_OFFSET_Y = "offset_y";
     public static final String COLUMN_CURRENT_LEVEL_INDEX = "current_level_index";
 
+    private static final String CREATE_TABLE =
+            "CREATE TABLE map_state (" +
+                    COLUMN_OFFSET_X + " REAL, " +
+                    COLUMN_OFFSET_Y + " REAL, " +
+                    COLUMN_CURRENT_LEVEL_INDEX + " INTEGER)";
+
 
     public MapDatabaseHelper(Context context) {
-        super(context, "map_database.db", null, DATABASE_VERSION);
+        super(context, "map_database3.db", null, DATABASE_VERSION);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        db.execSQL(CREATE_TABLE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+        db.execSQL("DROP TABLE IF EXISTS map_state");
         onCreate(db);
     }
 
@@ -49,9 +56,5 @@ public class MapDatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_CURRENT_LEVEL_INDEX, mapView.current_level_index);
         return values;
     }
-
-
-
-
 }
 

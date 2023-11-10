@@ -21,12 +21,14 @@ import androidx.annotation.RequiresApi;
 import com.example.lab_27_vasilev_mapapi_403.model.MapTile;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MapView extends SurfaceView {
     private static final String TABLE_TILES = "tiles";
     private MapDatabaseHelper dbHelper;
 
     private SQLiteDatabase db;
+    private OnClickToMap listener;
 
     ArrayList <MapTile> tiles = new ArrayList<MapTile>();
 
@@ -63,13 +65,11 @@ public class MapView extends SurfaceView {
 
     int width, height;
 
-    private OnClickToMap ClickMap;
 
-    private CallMapApi API = ApiHelper.getMapApi();
     private Canvas mapCanvas = new Canvas();
 
-    public void setListener(OnClickToMap NewMapClick ) {
-        this.ClickMap = NewMapClick;
+    public void setListener(OnClickToMap newListener) {
+        this.listener = newListener;
     }
 
     public MapView(Context context, AttributeSet attrs) {
@@ -144,46 +144,27 @@ public class MapView extends SurfaceView {
 
                 last_x = x;
                 last_y = y;
-                ClickMap.onMove();
                 return true;
 
             case MotionEvent.ACTION_UP:
-                ClickMap.onClick(
-                        (event.getX() + abs(offset_x)) / levels[4 - current_level_index],
-                        (event.getY() + abs(offset_y)) / levels[4 - current_level_index]
-                );
                 return true;
         }
         return false;
     }
 
-
-    boolean rect_intersects_rect(
-            float ax0, float ay0, float ax1, float ay1,
-            float bx0, float by0, float bx1, float by1) {
-
-        if (ax1 < bx0) return false;
-        if (ax0 > bx1) return false;
-        if (ay1 < by0) return false;
-        if (ay0 > by1) return false;
-
-        return true;
-    }
-
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
-    protected void onDraw(Canvas canvas)
-    {
+    protected void onDraw(Canvas canvas) {
 
-       width = canvas.getWidth();
-       height = canvas.getHeight();
+        width = canvas.getWidth();
+        height = canvas.getHeight();
 
-       canvas.drawColor(Color.WHITE);
+        canvas.drawColor(Color.WHITE);
 
-       int screen_x0 = 0;
-       int screen_y0 = 0;
-       int screen_x1 = canvas.getWidth() - 1;
-       int screen_y1 = canvas.getHeight() - 1;
+        int screen_x0 = 0;
+        int screen_y0 = 0;
+        int screen_x1 = canvas.getWidth() - 1;
+        int screen_y1 = canvas.getHeight() - 1;
 
         // Добавленная обработка current_level_index какие квадраты строить
         if (current_level_index >= 0 && current_level_index < levels.length) {
@@ -195,7 +176,7 @@ public class MapView extends SurfaceView {
                 h = y_tiles[current_level_index];
             }
 
-            for (int y = 0; y < h; y++)
+            for (int y = 0; y < h; y++) {
                 for (int x = 0; x < w; x++) {
                     int x0 = x * tile_width + (int) offset_x;
                     int y0 = y * tile_height + (int) offset_y;
@@ -209,13 +190,16 @@ public class MapView extends SurfaceView {
 
 
                     MapTile t = getTile(x, y, levels[current_level_index]);
-                    if (t.bmp != null) canvas.drawBitmap(t.bmp, x0, y0, p);
+                    if (t.bmp != null) {
+                        canvas.drawBitmap(t.bmp, x0, y0, p);
+                    }
 
                     canvas.drawRect(x0, y0, x1, y1, p);
                     canvas.drawText(String.valueOf(levels[current_level_index]) + ", " + String.valueOf(x) +
                             ", " + String.valueOf(y), (x0 + x1) / 2, (y0 + y1) / 2, p);
                 }
         }
+    }
 
         else
         {

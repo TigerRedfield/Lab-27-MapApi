@@ -22,8 +22,7 @@ public class ApiHelper {
     public  static  CallMapApi getMapApi() {
 
         OkHttpClient okHttpClient = new OkHttpClient().newBuilder() // создаём экземпляр библиотеки OkHTTP,
-                .addInterceptor(new HttpLoggingInterceptor() // чтобы реализовать связь по HTTP
-                        .setLevel(HttpLoggingInterceptor.Level.BODY))
+                .addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)) // чтобы реализовать связь по HTTP
                 .build();
 
         Retrofit retrofit = new Retrofit.Builder() // создаём экземпляр библиотеки Retrofit
