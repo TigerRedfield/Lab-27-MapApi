@@ -6,27 +6,44 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity" >
 
-    <com.example.lab_27_vasilev_mapapi_403.MapView
-        android:id="@+id/mapView"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_name3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/tv_name" />
+
+        <com.example.lab_27_vasilev_mapapi_403.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical">
 
         <Button
             android:id="@+id/But_Plus"
-            android:layout_width="match_parent"
+            android:layout_width="80px"
             android:layout_height="wrap_content"
+            android:padding="10px"
             android:text="@string/BPlus" />
 
         <Button
             android:id="@+id/But_Minus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:padding="10px"
             android:text="@string/BMinus" />
     </LinearLayout>
 
