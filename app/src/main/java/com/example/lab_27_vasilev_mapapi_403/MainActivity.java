@@ -14,14 +14,26 @@ public class MainActivity extends AppCompatActivity {
 
     private MapDatabaseHelper db;
 
-    MapView mv;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         MainBinding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(MainBinding.getRoot());
         db = new MapDatabaseHelper(this.getApplicationContext());
+
+        MainBinding.mapView.refreshMap();
+
+        MainBinding.mapView.setListener(new OnClickToMap() {
+            @Override
+            public void onClick(Float x, Float y) {
+                    MainBinding.mapView.refreshMap();
+            }
+
+            @Override
+            public void onMove()  {
+                MainBinding.mapView.refreshMap();
+            }
+        });
 
         MainBinding.ButPlus.setOnClickListener(v -> {
 

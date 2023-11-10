@@ -1,5 +1,7 @@
 package com.example.lab_27_vasilev_mapapi_403;
 
+import com.example.lab_27_vasilev_mapapi_403.model.CoordinateMap;
+import com.example.lab_27_vasilev_mapapi_403.model.LineCoordinatesMap;
 import com.example.lab_27_vasilev_mapapi_403.model.MapTileLevelsItem;
 import com.example.lab_27_vasilev_mapapi_403.model.MapTilesItem;
 
@@ -23,12 +25,12 @@ public interface CallMapApi {
     );
 
     @GET("/coastline/{level}")
-    Call<Void> Coastline(
+    Call<List<List<CoordinateMap>>> Coastline(
             @Path("level") Integer LevelScale,
-            @Query("lat0") Query lat0,
-            @Query("lon0") Query lan0,
-            @Query("lat1") Query lat1,
-            @Query("lon1") Query lan1
+            @Query("lat0") Float lat0,
+            @Query("lon0") Float lan0,
+            @Query("lat1") Float lat1,
+            @Query("lon1") Float lan1
     );
 
 }

@@ -24,7 +24,7 @@ public class MapDatabaseHelper extends SQLiteOpenHelper {
 
 
     public MapDatabaseHelper(Context context) {
-        super(context, "map_database3.db", null, DATABASE_VERSION);
+        super(context, "map_database5.db", null, DATABASE_VERSION);
     }
 
     @Override

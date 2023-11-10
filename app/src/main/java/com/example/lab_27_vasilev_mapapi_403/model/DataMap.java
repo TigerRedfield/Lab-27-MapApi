@@ -7,11 +7,13 @@ public class DataMap {
     private String name;
     private List<MapZoomLevel> zoomLevels;
     private List<MapTile> tiles;
+    private List<DataLayerMap> dataLayerMap;
 
-    public DataMap(String name, List<MapZoomLevel> zoomLevels, List<MapTile> tiles) {
+    public DataMap(String name, List<MapZoomLevel> zoomLevels, List<MapTile> tiles, List<DataLayerMap> dataLayerMap) {
         this.name = name;
         this.zoomLevels = zoomLevels;
         this.tiles = tiles;
+        this.dataLayerMap = dataLayerMap;
     }
 
     public String getName() {
@@ -38,4 +40,11 @@ public class DataMap {
         this.tiles = tiles;
     }
 
+    public List<DataLayerMap> getDataLayers() {
+        return dataLayerMap;
+    }
+
+    public void setDataLayers(List<DataLayerMap> dataLayers) {
+        this.dataLayerMap = dataLayerMap;
+    }
 }

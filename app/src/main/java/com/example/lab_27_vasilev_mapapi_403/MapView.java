@@ -18,10 +18,17 @@ import android.view.SurfaceView;
 
 import androidx.annotation.RequiresApi;
 
+import com.example.lab_27_vasilev_mapapi_403.model.CoordinateMap;
+import com.example.lab_27_vasilev_mapapi_403.model.LineCoordinatesMap;
 import com.example.lab_27_vasilev_mapapi_403.model.MapTile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MapView extends SurfaceView {
     private static final String TABLE_TILES = "tiles";
@@ -29,6 +36,8 @@ public class MapView extends SurfaceView {
 
     private SQLiteDatabase db;
     private OnClickToMap listener;
+    private ExecutorService tileLoadExecutor;
+    Handler mainThreadHandler = new Handler(Looper.getMainLooper());
 
     ArrayList <MapTile> tiles = new ArrayList<MapTile>();
 
@@ -65,7 +74,8 @@ public class MapView extends SurfaceView {
 
     int width, height;
 
-
+    private CallMapApi API = ApiHelper.getMapApi();
+    private List<List<CoordinateMap>> coastlineCoordinates = new ArrayList<>();
     private Canvas mapCanvas = new Canvas();
 
     public void setListener(OnClickToMap newListener) {
@@ -77,7 +87,7 @@ public class MapView extends SurfaceView {
 
         p = new Paint();
         p.setStyle(Paint.Style.STROKE);
-        p.setColor(Color.RED);
+        p.setColor(Color.BLACK);
 
         setWillNotDraw(false);
 
@@ -89,10 +99,10 @@ public class MapView extends SurfaceView {
     // Метод для сохранения состояния карты в базу данных
     public void saveMapCurrent() {
         if (db != null) {
-            // Удаляем старую запись
+            // Удалить старую запись
             db.delete("map_state", null, null);
 
-            // Вставляем новую запись с текущими данными карты
+            // Вставить новую запись с текущими данными карты
             db.insert("map_state", null, MapDatabaseHelper.getContentValues(this));
         }
     }
@@ -144,9 +154,14 @@ public class MapView extends SurfaceView {
 
                 last_x = x;
                 last_y = y;
+                listener.onMove();
                 return true;
 
             case MotionEvent.ACTION_UP:
+                listener.onClick(
+                        (event.getX() + abs(offset_x)) / levels[4 - current_level_index],
+                        (event.getY() + abs(offset_y)) / levels[4 - current_level_index]
+                );
                 return true;
         }
         return false;
@@ -168,8 +183,8 @@ public class MapView extends SurfaceView {
 
         // Добавленная обработка current_level_index какие квадраты строить
         if (current_level_index >= 0 && current_level_index < levels.length) {
-            int w = x_tiles[current_level_index];
-            int h = y_tiles[current_level_index];
+            int w = 0;
+            int h = 0;
 
             if (current_level_index < x_tiles.length && current_level_index < y_tiles.length) {
                 w = x_tiles[current_level_index];
@@ -180,8 +195,8 @@ public class MapView extends SurfaceView {
                 for (int x = 0; x < w; x++) {
                     int x0 = x * tile_width + (int) offset_x;
                     int y0 = y * tile_height + (int) offset_y;
-                    int x1 = x * tile_width;
-                    int y1 = y * tile_height;
+                    int x1 = x0 + tile_width;
+                    int y1 = y0 + tile_height;
 
                     if (x0 >= screen_x1 || x1 <= screen_x0 || y0 >= screen_y1 || y1 <= screen_y0) {
                         // Пропускать рисование тайла, если он его нет на экране
@@ -195,12 +210,22 @@ public class MapView extends SurfaceView {
                     }
 
                     canvas.drawRect(x0, y0, x1, y1, p);
-                    canvas.drawText(String.valueOf(levels[current_level_index]) + ", " + String.valueOf(x) +
-                            ", " + String.valueOf(y), (x0 + x1) / 2, (y0 + y1) / 2, p);
+                    canvas.drawText(String.valueOf(levels[current_level_index]) + ", " + String.valueOf(x) + ", " + String.valueOf(y),
+                            (x0 + x1) / 2,
+                            (y0 + y1) / 2,
+                            p);
                 }
         }
-    }
+            Paint coastlinePaint = new Paint();
+            coastlinePaint.setColor(Color.YELLOW);
+            coastlinePaint.setStrokeWidth(10.0f);
 
+            for (List<CoordinateMap> coastLine : coastlineCoordinates) {
+                for (int i = 0; i < coastLine.size() - 1; i++) {
+                    canvas.drawLine(coastLine.get(i).x, coastLine.get(i).y, coastLine.get(i + 1).x, coastLine.get(i + 1).y, coastlinePaint);
+                }
+            }
+        }
         else
         {
             // Обработка случая, когда current_level_index находится за пределами массива levels
@@ -216,6 +241,31 @@ public class MapView extends SurfaceView {
             }
         }
         mapCanvas = canvas;
+    }
+
+    public void refreshMap() {
+
+        API.Coastline(
+                levels[current_level_index],
+                ((mapCanvas.getWidth() / 360) * (offset_x / 360)),
+                ((mapCanvas.getHeight() / 360) * (offset_y / 360)),
+                ((mapCanvas.getWidth() / 360) * ((offset_x + (mapCanvas.getWidth() - 1)) / 360)),
+                ((mapCanvas.getHeight() / 360) * ((offset_y + (mapCanvas.getHeight() - 1)) / 360))
+        ).enqueue(new Callback<List<List<CoordinateMap>>>() {
+            @Override
+            public void onResponse(Call<List<List<CoordinateMap>>> call, Response<List<List<CoordinateMap>>> response) {
+
+                coastlineCoordinates.addAll(response.body());
+
+                invalidate();
+            }
+
+            @Override
+            public void onFailure(Call<List<List<CoordinateMap>>> call, Throwable t) {
+
+            }
+        });
+
     }
 
 }
