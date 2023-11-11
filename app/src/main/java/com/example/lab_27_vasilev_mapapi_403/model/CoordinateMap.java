@@ -8,4 +8,9 @@ public class CoordinateMap {
     public Float x;
     @SerializedName("y")
     public Float y;
+
+    public CoordinateMap(Float x, Float y){
+        this.x = x;
+        this.y = y;
+    }
 }

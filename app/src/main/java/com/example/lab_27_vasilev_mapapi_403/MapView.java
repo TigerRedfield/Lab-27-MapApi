@@ -1,6 +1,7 @@
 package com.example.lab_27_vasilev_mapapi_403;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.cos;
 
 import android.app.Activity;
 import android.content.Context;
@@ -9,6 +10,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PathMeasure;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.Region;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -31,13 +37,10 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MapView extends SurfaceView {
-    private static final String TABLE_TILES = "tiles";
     private MapDatabaseHelper dbHelper;
 
     private SQLiteDatabase db;
     private OnClickToMap listener;
-    private ExecutorService tileLoadExecutor;
-    Handler mainThreadHandler = new Handler(Looper.getMainLooper());
 
     ArrayList <MapTile> tiles = new ArrayList<MapTile>();
 
@@ -199,6 +202,7 @@ public class MapView extends SurfaceView {
                     int y1 = y0 + tile_height;
 
                     if (x0 >= screen_x1 || x1 <= screen_x0 || y0 >= screen_y1 || y1 <= screen_y0) {
+
                         // Пропускать рисование тайла, если он его нет на экране
                         continue;
                     }
@@ -207,6 +211,7 @@ public class MapView extends SurfaceView {
                     MapTile t = getTile(x, y, levels[current_level_index]);
                     if (t.bmp != null) {
                         canvas.drawBitmap(t.bmp, x0, y0, p);
+
                     }
 
                     canvas.drawRect(x0, y0, x1, y1, p);
@@ -214,11 +219,16 @@ public class MapView extends SurfaceView {
                             (x0 + x1) / 2,
                             (y0 + y1) / 2,
                             p);
+
                 }
         }
+
             Paint coastlinePaint = new Paint();
-            coastlinePaint.setColor(Color.YELLOW);
-            coastlinePaint.setStrokeWidth(10.0f);
+
+            coastlinePaint.setColor(Color.DKGRAY);
+            coastlinePaint.setStrokeWidth(2.0f);
+            coastlinePaint.setStyle(Paint.Style.STROKE);
+
 
             for (List<CoordinateMap> coastLine : coastlineCoordinates) {
                 for (int i = 0; i < coastLine.size() - 1; i++) {
@@ -245,6 +255,8 @@ public class MapView extends SurfaceView {
 
     public void refreshMap() {
 
+        coastlineCoordinates.clear();
+
         API.Coastline(
                 levels[current_level_index],
                 ((mapCanvas.getWidth() / 360) * (offset_x / 360)),
@@ -256,7 +268,6 @@ public class MapView extends SurfaceView {
             public void onResponse(Call<List<List<CoordinateMap>>> call, Response<List<List<CoordinateMap>>> response) {
 
                 coastlineCoordinates.addAll(response.body());
-
                 invalidate();
             }
 
